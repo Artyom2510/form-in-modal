@@ -1,24 +1,25 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {connect} from 'react-redux';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {addItem} from '../actions';
 
-const CreateList = ({
-	dispatch,
-	saveInProgress,
-	saveError
-}) => {
+const CreateList = () => {
 	const [itemName, setItemName] = useState('');
 	const [price, setPrice] = useState('');
 	const inputRef = useRef();
+	const dispatch = useDispatch();
+	const inProccess = useSelector(state => state.saveInProgress);
+	const error = useSelector(state => state.saveError);
+	const createItem = useCallback((itemName, price) => {
+		dispatch(addItem(itemName, price))
+	}, [dispatch])
+	const handleSubmit = e => {
+		e.preventDefault();
+		createItem(itemName, price);
+	};
 
 	useEffect(() => {
 		inputRef.current.focus();
 	}, []);
-
-	const handleSubmit = e => {
-		e.preventDefault();
-		dispatch(addItem(itemName, price));
-	};
 
 	return (
 		<>
@@ -32,7 +33,7 @@ const CreateList = ({
 					ref={inputRef}
 					type="text"
 					value={itemName}
-					disabled={saveInProgress}
+					disabled={inProccess}
 					onChange={e => setItemName(e.target.value)}
 				/>
 				<label htmlFor="inputPrice">Item price:</label>
@@ -40,15 +41,15 @@ const CreateList = ({
 					id="inputPrice"
 					type="text"
 					value={price}
-					disabled={saveInProgress}
+					disabled={inProccess}
 					onChange={e => setPrice(e.target.value)}
 				/>
-				{saveError && (
-					<p>Error: {saveError.message} </p>
+				{error && (
+					<p>Error: {error.message} </p>
 				)}
 				<button
 					type="submit"
-					disabled={saveInProgress}
+					disabled={inProccess}
 				>
 					Create item
 				</button>
@@ -57,9 +58,4 @@ const CreateList = ({
 	);
 };
 
-const mapState = ({saveInProgress, saveError}) => ({
-	saveInProgress,
-	saveError
-});
-
-export default connect(mapState)(CreateList);
+export default CreateList;
